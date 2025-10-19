@@ -1,1 +1,3 @@
-/target
+target/
+/src/first_hands_on/target
+.idea
