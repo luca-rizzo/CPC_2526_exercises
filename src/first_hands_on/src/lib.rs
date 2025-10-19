@@ -1,5 +1,3 @@
-use std::cmp::{max, min};
-
 pub struct Node {
     key: u32,
     id_left: Option<usize>,
@@ -74,24 +72,20 @@ impl Tree {
 }
 
 fn is_bst(tree: &Tree) -> bool {
-    let (is_bst, _, _) = rec_is_bst(tree, Some(0));
-    is_bst
+    rec_is_bst(tree, Some(0), u32::MIN, u32::MAX)
 }
 
-fn rec_is_bst(tree: &Tree, id: Option<usize>) -> (bool, u32, u32) {
+fn rec_is_bst(tree: &Tree, id: Option<usize>, l_range: u32, r_range: u32) -> bool {
     match id {
-        None => (true, u32::MAX, u32::MIN),
+        None => true,
         Some(id) => {
             assert!(id < tree.nodes.len(), "Node id is out of range");
             let c_node = &tree.nodes[id];
-            let (l_is_bst, l_min_val, l_max_val) = rec_is_bst(tree, c_node.id_left);
-            let (r_is_bst, r_min_val, r_max_val) = rec_is_bst(tree, c_node.id_right);
-            let is_bst = l_is_bst && r_is_bst && c_node.key >= l_max_val && c_node.key < r_min_val;
-            (
-                is_bst,
-                min(c_node.key, min(l_min_val, r_min_val)),
-                max(c_node.key, max(r_max_val, l_max_val)),
-            )
+            if !(c_node.key >= l_range && c_node.key < r_range) {
+                return false;
+            }
+            rec_is_bst(&tree, c_node.id_left, l_range, c_node.key)
+                && rec_is_bst(&tree, c_node.id_right, c_node.key, r_range)
         }
     }
 }
