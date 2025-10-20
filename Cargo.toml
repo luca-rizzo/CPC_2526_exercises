@@ -1,6 +1,6 @@
-[package]
-name = "CPC_2526_exercises"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
+[workspace]
+members = [
+    "hands-on\\*",
+    "problems\\*"
+]
+resolver = "2"

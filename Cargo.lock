@@ -3,5 +3,9 @@
 version = 4
 
 [[package]]
-name = "CPC_2526_exercises"
+name = "handson1"
+version = "0.1.0"
+
+[[package]]
+name = "max_path_tree"
 version = "0.1.0"
