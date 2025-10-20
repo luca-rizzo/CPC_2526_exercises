@@ -87,18 +87,16 @@ mod is_bst {
     }
 
     fn rec_is_bst(tree: &Tree, id: Option<usize>, l_range: i32, r_range: i32) -> bool {
-        match id {
-            None => true,
-            Some(id) => {
-                assert!(id < tree.nodes.len(), "Node id is out of range");
-                let c_node = &tree.nodes[id];
-                if !(c_node.key >= l_range && c_node.key < r_range) {
-                    return false;
-                }
-                rec_is_bst(&tree, c_node.id_left, l_range, c_node.key)
-                    && rec_is_bst(&tree, c_node.id_right, c_node.key, r_range)
-            }
+        let Some(id) = id else {
+            return true;
+        };
+        assert!(id < tree.nodes.len(), "Node id is out of range");
+        let c_node = &tree.nodes[id];
+        if !(c_node.key >= l_range && c_node.key < r_range) {
+            return false;
         }
+        rec_is_bst(&tree, c_node.id_left, l_range, c_node.key)
+            && rec_is_bst(&tree, c_node.id_right, c_node.key, r_range)
     }
 
     #[cfg(test)]
@@ -126,15 +124,39 @@ mod is_bst {
         }
 
         #[test]
-        fn test_typical_counter_example() {
+        fn test_not_bst_one_level() {
             let mut tree = Tree::with_root(10);
-            let id_left = tree.add_left_child(0, 5);
-            tree.add_right_child(id_left, 12);
+            tree.add_left_child(0, 15);
+            tree.add_right_child(0, 12);
             assert!(!is_bst(&tree));
         }
 
         #[test]
-        fn test_complex_true_bst_not_full() {
+        fn test_not_bst_two_levels_right() {
+            let mut tree = Tree::with_root(10);
+            let l = tree.add_left_child(0, 8);
+            tree.add_left_child(l, 3);
+            tree.add_right_child(l, 9);
+            let r = tree.add_right_child(0, 20);
+            tree.add_left_child(r, 13);
+            tree.add_right_child(r, 19);
+            assert!(!is_bst(&tree));
+        }
+
+        #[test]
+        fn test_not_bst_two_levels_left() {
+            let mut tree = Tree::with_root(10);
+            let l = tree.add_left_child(0, 8);
+            tree.add_left_child(l, 3);
+            tree.add_right_child(l, 12);
+            let r = tree.add_right_child(0, 20);
+            tree.add_left_child(r, 13);
+            tree.add_right_child(r, 23);
+            assert!(!is_bst(&tree));
+        }
+
+        #[test]
+        fn test_complex_bst_not_full() {
             let mut tree = Tree::with_root(15);
 
             // Left subtree
@@ -160,7 +182,7 @@ mod is_bst {
         }
 
         #[test]
-        fn test_complex_true_bst() {
+        fn test_three_leve_bst_full() {
             let mut tree = Tree::with_root(15);
 
             // Left subtree
@@ -189,7 +211,7 @@ mod is_bst {
         }
 
         #[test]
-        fn test_complex_false_bst_ancestor_violation() {
+        fn test_three_leve_no_bst_full() {
             let mut tree = Tree::with_root(15);
 
             // Left subtree
@@ -203,13 +225,13 @@ mod is_bst {
             tree.add_left_child(id_l_r, 8);
             tree.add_right_child(id_l_r, 10);
 
-            // Right subtree with the violation
+            // Right subtree
             let id_r = tree.add_right_child(0, 23);
-            let id_r_l = tree.add_left_child(id_r, 19);
+            //here property violation
+            let id_r_l = tree.add_left_child(id_r, 24);
             let id_r_r = tree.add_right_child(id_r, 31);
 
-            // Here's the subtle violation (should be > 15 because it's in root's right subtree)
-            tree.add_left_child(id_r_l, 14);
+            tree.add_left_child(id_r_l, 17);
             tree.add_right_child(id_r_l, 21);
 
             tree.add_left_child(id_r_r, 29);
@@ -218,6 +240,7 @@ mod is_bst {
             assert!(!is_bst(&tree));
         }
     }
+
 }
 
 // ===============================================================================
@@ -225,6 +248,7 @@ mod is_bst {
 // The method must return the sum of the maximum simple path connecting two leaves
 // ===============================================================================
 mod max_path_sum_leaf {
+
     use crate::tree::Tree;
     use std::cmp::max;
 
@@ -426,6 +450,5 @@ mod max_path_sum_leaf {
 
             assert_eq!(max_path_sum(&t), 45);
         }
-
     }
 }
