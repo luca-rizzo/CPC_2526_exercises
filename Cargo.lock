@@ -7,5 +7,9 @@ name = "handson1"
 version = "0.1.0"
 
 [[package]]
-name = "max_path_tree"
+name = "leet_level_order_traversal"
+version = "0.1.0"
+
+[[package]]
+name = "leet_max_path_tree"
 version = "0.1.0"

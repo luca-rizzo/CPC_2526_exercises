@@ -1,5 +1,5 @@
 [package]
-name = "max_path_tree"
+name = "leet_level_order_traversal"
 version = "0.1.0"
 edition = "2024"
 

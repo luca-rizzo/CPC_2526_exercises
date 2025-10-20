@@ -74,9 +74,7 @@ mod tree {
             child_id
         }
     }
-
 }
-
 
 // ===============================================================================
 // Exercise 1: Write a method to check if the binary tree is a Binary Search Tree
@@ -229,23 +227,35 @@ mod is_bst {
 mod max_path_sum_leaf {
     use crate::tree::Tree;
     use std::cmp::max;
+
+    struct MpsRes(i32, i32);
+
     fn max_path_sum(tree: &Tree) -> i32 {
-        let (max_sum, _) = rec_max_path_sum(&tree, Some(0));
-        max_sum
+        let MpsRes(between_leaves, _) = rec_max_path_sum(tree, Some(0));
+        between_leaves
     }
 
-    fn rec_max_path_sum(tree: &Tree, id: Option<usize>) -> (i32, i32) {
-        match id {
-            None => (i32::MIN, 0),
-            Some(id) => {
-                assert!(id < tree.nodes.len(), "Node id is out of range");
-                let c_node = &tree.nodes[id];
-                let (l_max, l_max_path) = rec_max_path_sum(tree, c_node.id_left);
-                let (r_max, r_max_path) = rec_max_path_sum(tree, c_node.id_right);
-                let c_max = max(l_max_path + r_max_path + c_node.key, max(l_max, r_max));
-                let path_max = max(l_max_path + c_node.key, r_max_path + c_node.key);
-                (c_max, path_max)
+    fn rec_max_path_sum(tree: &Tree, id: Option<usize>) -> MpsRes {
+        let Some(id) = id else {
+            return MpsRes(i32::MIN, i32::MIN);
+        };
+        assert!(id < tree.nodes.len(), "Node id is out of range");
+        let c_node = &tree.nodes[id];
+        let MpsRes(l_max, l_max_path) = rec_max_path_sum(tree, c_node.id_left);
+        let MpsRes(r_max, r_max_path) = rec_max_path_sum(tree, c_node.id_right);
+        let sub_tree_max = max(l_max, r_max);
+        // Update the maximum only if there is a valid path between two leaves passing through the current node
+        match (c_node.id_left.is_some(), c_node.id_right.is_some()) {
+            (true, true) => {
+                // In this case, it's possible to update the maximum because there exists
+                // a path between two leaves that passes through the current node.
+                let best_down = c_node.key + max(l_max_path, r_max_path);
+                let through = max(sub_tree_max, l_max_path + r_max_path + c_node.key);
+                MpsRes(through, best_down)
             }
+            (true, false) => MpsRes(sub_tree_max, c_node.key + l_max_path),
+            (false, true) => MpsRes(sub_tree_max, c_node.key + r_max_path),
+            (false, false) => MpsRes(sub_tree_max, c_node.key),
         }
     }
 
@@ -256,81 +266,166 @@ mod max_path_sum_leaf {
         #[test]
         fn test_single_node() {
             let tree = Tree::with_root(5);
-            assert_eq!(max_path_sum(&tree), 5);
+            assert_eq!(max_path_sum(&tree), i32::MIN);
         }
 
         #[test]
-        fn test_two_leaves_simple() {
+        fn test_two_positives_leaves() {
             let mut t = Tree::with_root(1);
             t.add_left_child(0, 2);
             t.add_right_child(0, 3);
-            // path: 2→1→3 = 6
             assert_eq!(max_path_sum(&t), 6);
         }
 
         #[test]
-        fn test_negative_branch() {
-            let mut t = Tree::with_root(2);
-            t.add_left_child(0, -1);
-            t.add_right_child(0, 3);
-            assert_eq!(max_path_sum(&t), 4);
+        fn test_two_negatives_leaves() {
+            let mut t = Tree::with_root(1);
+            t.add_left_child(0, -12);
+            t.add_right_child(0, -3);
+            assert_eq!(max_path_sum(&t), -14);
         }
 
         #[test]
-        fn test_negative_branch_single() {
+        fn test_single_positive_branch() {
             let mut t = Tree::with_root(2);
-            t.add_left_child(0, -4);
+            let l = t.add_left_child(0, 5);
+            t.add_left_child(l, 3);
+            assert_eq!(max_path_sum(&t), i32::MIN);
+        }
+
+        #[test]
+        fn test_single_negative_branch() {
+            let mut t = Tree::with_root(-2);
+            let l = t.add_left_child(0, -5);
+            t.add_left_child(l, -3);
+            assert_eq!(max_path_sum(&t), i32::MIN);
+        }
+
+        #[test]
+        fn test_not_full_left_subtree() {
+            let mut t = Tree::with_root(2);
+            let l = t.add_left_child(0, -10);
             t.add_right_child(0, 3);
-            assert_eq!(max_path_sum(&t), 3);
+            t.add_left_child(l, -8);
+            assert_eq!(max_path_sum(&t), -13);
+        }
+
+        #[test]
+        fn test_not_full_right_subtree() {
+            let mut t = Tree::with_root(2);
+            let r = t.add_left_child(0, -10);
+            t.add_right_child(0, 3);
+            t.add_left_child(r, -8);
+            assert_eq!(max_path_sum(&t), -13);
         }
 
         #[test]
         fn test_depth_two_tree() {
-            let mut tree = Tree::with_root(-10);
-            tree.add_left_child(0, 9);
-            let id_r = tree.add_right_child(0, 20);
-            tree.add_left_child(id_r, 15);
-            tree.add_right_child(id_r, 7);
-            // massimo path leaf-leaf: 15→20→7 = 42
-            assert_eq!(max_path_sum(&tree), 42);
+            let mut tree = Tree::with_root(2);
+            let l = tree.add_left_child(0, -10);
+            tree.add_right_child(0, 3);
+            tree.add_left_child(l, -8);
+            tree.add_right_child(l, 7);
+            assert_eq!(max_path_sum(&tree), 2);
         }
 
         #[test]
-        fn test_skewed_left() {
-            let mut t = Tree::with_root(5);
-            let l1 = t.add_left_child(0, 4);
-            t.add_left_child(l1, 3);
-            // una sola foglia (3) → nessuna coppia di foglie
-            // policy: massimo path root-to-leaf = 5+4+3=12
-            assert_eq!(max_path_sum(&t), 12);
+        fn test_depth_two_full_tree_max_through_root() {
+            let mut tree = Tree::with_root(6);
+            let l = tree.add_left_child(0, -10);
+            let r = tree.add_right_child(0, 13);
+            tree.add_left_child(l, -3);
+            tree.add_right_child(l, 7);
+            tree.add_left_child(r, -1);
+            tree.add_right_child(r, 12);
+            assert_eq!(max_path_sum(&tree), 28);
         }
 
         #[test]
-        fn test_complex_tree() {
-            let mut t = Tree::with_root(10);
-            let l = t.add_left_child(0, 2);
-            let r = t.add_right_child(0, 10);
-            t.add_left_child(l, 20);
-            t.add_right_child(l, 1);
-            let r_r = t.add_right_child(r, -5);
-            t.add_left_child(r_r, 30);
-            t.add_right_child(r_r, 4);
-            // migliore path leaf-leaf: 20→2→10→10 = 42
-            assert_eq!(max_path_sum(&t), 67);
+        fn test_depth_two_full_tree_max_in_left_sub_tree() {
+            let mut tree = Tree::with_root(6);
+            let l = tree.add_left_child(0, -10);
+            let r = tree.add_right_child(0, 13);
+            tree.add_left_child(l, -3);
+            tree.add_right_child(l, 7);
+            tree.add_left_child(r, 3);
+            tree.add_right_child(r, 22);
+            assert_eq!(max_path_sum(&tree), 38);
         }
 
         #[test]
-        fn test_with_negatives() {
-            let mut t = Tree::with_root(-15);
+        fn test_depth_two_full_tree_max_in_right_sub_tree() {
+            let mut tree = Tree::with_root(-16);
+            let l = tree.add_left_child(0, 10);
+            let r = tree.add_right_child(0, 2);
+            tree.add_left_child(l, 3);
+            tree.add_right_child(l, 7);
+            tree.add_left_child(r, 3);
+            tree.add_right_child(r, 2);
+            assert_eq!(max_path_sum(&tree), 20);
+        }
+
+        #[test]
+        fn test_complex_tree_max_in_subtree() {
+            let mut t = Tree::with_root(-10);
+
+            // Struttura Sinistra
             let l = t.add_left_child(0, 5);
+            let l_l = t.add_left_child(l, -6);
+            let l_r = t.add_right_child(l, 1);
+
+            let l_l_l = t.add_left_child(l_l, 2);
+            let l_l_r = t.add_right_child(l_l, 6);
+
+            t.add_left_child(l_r, 3);
+            t.add_right_child(l_r, 2);
+
             let r = t.add_right_child(0, 6);
-            let l_l = t.add_left_child(l, -8);
-            t.add_right_child(l, 1);
             let r_l = t.add_left_child(r, 3);
-            t.add_right_child(r, 9);
-            t.add_left_child(l_l, 2);
-            t.add_right_child(l_l, 6);
-            assert_eq!(max_path_sum(&t), 18);
+            let r_r = t.add_right_child(r, 4);
+
+            t.add_left_child(r_l, 0);
+
+            let r_r_r = t.add_right_child(r_r, 2);
+            t.add_left_child(r_r_r, 0);
+
+            let r_r_r_r = t.add_right_child(r_r_r, -1);
+            let r_r_r_r_l = t.add_left_child(r_r_r_r, 10);
+            t.add_right_child(r_r_r_r_l, 2);
+
+            assert_eq!(max_path_sum(&t), 26);
         }
+
+        #[test]
+        fn test_complex_tree_max_through_root() {
+            let mut t = Tree::with_root(10);
+
+            // Struttura Sinistra
+            let l = t.add_left_child(0, 5);
+            let l_l = t.add_left_child(l, -6);
+            let l_r = t.add_right_child(l, 1);
+
+            let l_l_l = t.add_left_child(l_l, 2);
+            let l_l_r = t.add_right_child(l_l, 6);
+
+            t.add_left_child(l_r, 3);
+            t.add_right_child(l_r, 2);
+
+            let r = t.add_right_child(0, 6);
+            let r_l = t.add_left_child(r, 3);
+            let r_r = t.add_right_child(r, 4);
+
+            t.add_left_child(r_l, 0);
+
+            let r_r_r = t.add_right_child(r_r, 2);
+            t.add_left_child(r_r_r, 0);
+
+            let r_r_r_r = t.add_right_child(r_r_r, -1);
+            let r_r_r_r_l = t.add_left_child(r_r_r_r, 10);
+            t.add_right_child(r_r_r_r_l, 2);
+
+            assert_eq!(max_path_sum(&t), 45);
+        }
+
     }
 }
