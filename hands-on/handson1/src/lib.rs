@@ -99,6 +99,7 @@ mod is_bst {
         };
         assert!(id < tree.nodes.len(), "Node id is out of range");
         let c_node = &tree.nodes[id];
+        // the BST property is satisfied only if the key lies strictly within the given range
         if let Some(l) = l_range
             && c_node.key <= l
         {
@@ -109,6 +110,7 @@ mod is_bst {
         {
             return false;
         }
+        // recurse left and right, updating bounds according to the node key
         rec_is_bst(tree, c_node.id_left, l_range, Some(c_node.key))
             && rec_is_bst(tree, c_node.id_right, Some(c_node.key), r_range)
     }
