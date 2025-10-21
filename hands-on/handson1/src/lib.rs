@@ -83,20 +83,28 @@ mod is_bst {
     use crate::tree::Tree;
 
     fn is_bst(tree: &Tree) -> bool {
-        rec_is_bst(tree, Some(0), i32::MIN, i32::MAX)
+        rec_is_bst(tree, Some(0), None, None)
     }
 
-    fn rec_is_bst(tree: &Tree, id: Option<usize>, l_range: i32, r_range: i32) -> bool {
+    fn rec_is_bst(
+        tree: &Tree,
+        id: Option<usize>,
+        l_range: Option<i32>,
+        r_range: Option<i32>,
+    ) -> bool {
         let Some(id) = id else {
             return true;
         };
         assert!(id < tree.nodes.len(), "Node id is out of range");
         let c_node = &tree.nodes[id];
-        if !(c_node.key >= l_range && c_node.key < r_range) {
-            return false;
+        if let Some(l) = l_range {
+            if c_node.key <= l { return false; }
         }
-        rec_is_bst(&tree, c_node.id_left, l_range, c_node.key)
-            && rec_is_bst(&tree, c_node.id_right, c_node.key, r_range)
+        if let Some(r) = r_range {
+            if c_node.key >= r { return false; }
+        }
+        rec_is_bst(&tree, c_node.id_left, l_range, Some(c_node.key))
+            && rec_is_bst(&tree, c_node.id_right, Some(c_node.key), r_range)
     }
 
     #[cfg(test)]
@@ -108,6 +116,14 @@ mod is_bst {
             let mut tree = Tree::with_root(10);
             tree.add_left_child(0, 5);
             tree.add_right_child(0, 22);
+            assert!(is_bst(&tree));
+        }
+
+        #[test]
+        fn test_depth_one_tree_min_max() {
+            let mut tree = Tree::with_root(10);
+            tree.add_left_child(0, i32::MIN);
+            tree.add_right_child(0, i32::MAX);
             assert!(is_bst(&tree));
         }
 
@@ -240,7 +256,6 @@ mod is_bst {
             assert!(!is_bst(&tree));
         }
     }
-
 }
 
 // ===============================================================================
@@ -248,7 +263,6 @@ mod is_bst {
 // The method must return the sum of the maximum simple path connecting two leaves
 // ===============================================================================
 mod max_path_sum_leaf {
-
     use crate::tree::Tree;
     use std::cmp::max;
 
