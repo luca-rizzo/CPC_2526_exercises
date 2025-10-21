@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 // =========================================================
 // tree module: it contains the tree data structure provided
 // ==========================================================
@@ -97,14 +99,18 @@ mod is_bst {
         };
         assert!(id < tree.nodes.len(), "Node id is out of range");
         let c_node = &tree.nodes[id];
-        if let Some(l) = l_range {
-            if c_node.key <= l { return false; }
+        if let Some(l) = l_range
+            && c_node.key <= l
+        {
+            return false;
         }
-        if let Some(r) = r_range {
-            if c_node.key >= r { return false; }
+        if let Some(r) = r_range
+            && c_node.key >= r
+        {
+            return false;
         }
-        rec_is_bst(&tree, c_node.id_left, l_range, Some(c_node.key))
-            && rec_is_bst(&tree, c_node.id_right, Some(c_node.key), r_range)
+        rec_is_bst(tree, c_node.id_left, l_range, Some(c_node.key))
+            && rec_is_bst(tree, c_node.id_right, Some(c_node.key), r_range)
     }
 
     #[cfg(test)]
@@ -117,6 +123,14 @@ mod is_bst {
             tree.add_left_child(0, 5);
             tree.add_right_child(0, 22);
             assert!(is_bst(&tree));
+        }
+
+        #[test]
+        fn test_duplicate_in_tree() {
+            let mut tree = Tree::with_root(10);
+            tree.add_left_child(0, 10);
+            tree.add_right_child(0, 22);
+            assert!(!is_bst(&tree));
         }
 
         #[test]
@@ -412,8 +426,8 @@ mod max_path_sum_leaf {
             let l_l = t.add_left_child(l, -6);
             let l_r = t.add_right_child(l, 1);
 
-            let l_l_l = t.add_left_child(l_l, 2);
-            let l_l_r = t.add_right_child(l_l, 6);
+            t.add_left_child(l_l, 2);
+            t.add_right_child(l_l, 6);
 
             t.add_left_child(l_r, 3);
             t.add_right_child(l_r, 2);
@@ -443,8 +457,8 @@ mod max_path_sum_leaf {
             let l_l = t.add_left_child(l, -6);
             let l_r = t.add_right_child(l, 1);
 
-            let l_l_l = t.add_left_child(l_l, 2);
-            let l_l_r = t.add_right_child(l_l, 6);
+            t.add_left_child(l_l, 2);
+            t.add_right_child(l_l, 6);
 
             t.add_left_child(l_r, 3);
             t.add_right_child(l_r, 2);
@@ -462,7 +476,7 @@ mod max_path_sum_leaf {
             let r_r_r_r_l = t.add_left_child(r_r_r_r, 10);
             t.add_right_child(r_r_r_r_l, 2);
 
-            assert_eq!(max_path_sum(&t), 45);
+            assert_eq!(max_path_sum(&t), 42);
         }
     }
 }

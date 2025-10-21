@@ -12,7 +12,7 @@ impl TreeNode {
         TreeNode {
             val,
             left: None,
-            right: None
+            right: None,
         }
     }
 }
@@ -23,7 +23,6 @@ use std::cell::RefCell;
 use std::cmp::max;
 use std::rc::Rc;
 impl Solution {
-
     pub fn max_path_sum(root: Option<Rc<RefCell<TreeNode>>>) -> i32 {
         let (c_max, _) = Self::rec_max_path_sum(root);
         c_max
