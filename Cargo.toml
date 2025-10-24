@@ -1,6 +1,7 @@
 [workspace]
-members = [
+members = ["challenges/first_challenge",
     "hands-on\\*",
-    "problems\\*"
+    "problems\\leet*",
+    "problems\\lessons\\*"
 ]
 resolver = "2"

@@ -3,6 +3,14 @@
 version = 4
 
 [[package]]
+name = "duplicate_element"
+version = "0.1.0"
+
+[[package]]
+name = "first_challenge"
+version = "0.1.0"
+
+[[package]]
 name = "handson1"
 version = "0.1.0"
 
@@ -16,4 +24,16 @@ version = "0.1.0"
 
 [[package]]
 name = "leet_max_path_tree"
+version = "0.1.0"
+
+[[package]]
+name = "maximize_distance_to_closest_person"
+version = "0.1.0"
+
+[[package]]
+name = "maximum_sliding_windows"
+version = "0.1.0"
+
+[[package]]
+name = "trapping_rain_water"
 version = "0.1.0"

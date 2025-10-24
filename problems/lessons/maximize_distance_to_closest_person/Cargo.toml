@@ -1,0 +1,6 @@
+[package]
+name = "maximize_distance_to_closest_person"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
