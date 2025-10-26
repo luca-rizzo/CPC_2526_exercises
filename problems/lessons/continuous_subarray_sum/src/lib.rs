@@ -21,9 +21,6 @@ impl Solution {
             if idx > 0 && remainder == 0 {
                 return true;
             }
-            if idx > 0 && remainder == 0 {
-                return true;
-            }
             if let Some(&prev_idx) = hash_map.get(&remainder) {
                 if idx as i32 - prev_idx > 1 {
                     return true;
