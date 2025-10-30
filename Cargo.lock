@@ -43,5 +43,9 @@ name = "maximum_sliding_windows"
 version = "0.1.0"
 
 [[package]]
+name = "segment_tree"
+version = "0.1.0"
+
+[[package]]
 name = "trapping_rain_water"
 version = "0.1.0"
