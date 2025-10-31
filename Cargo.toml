@@ -1,5 +1,6 @@
 [workspace]
-members = ["challenges/first_challenge", "data_structures/segment_tree",
+members = ["challenges/first_challenge", 
+    "data_structures/segment_tree",
     "hands-on\\*",
     "problems\\leet*",
     "problems\\lessons\\*"
