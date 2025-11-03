@@ -23,6 +23,10 @@ name = "handson1"
 version = "0.1.0"
 
 [[package]]
+name = "integers_covered_by_range"
+version = "0.1.0"
+
+[[package]]
 name = "leet_is_bst"
 version = "0.1.0"
 
