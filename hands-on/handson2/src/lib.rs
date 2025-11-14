@@ -45,17 +45,28 @@ mod range {
             self.start + ((self.end - self.start) / 2)
         }
     }
+
+    pub fn left_right_child_index(node_segment: Range, father_index: usize) -> (usize, usize) {
+        let middle = node_segment.middle();
+        // since the left subtree has num_leaf_left_subtree leaf it will have in total
+        // 2 * num_leaf_left_subtree - 1 nodes leaf included so the index of the right
+        // child will be the next after this nodes
+        let num_leaf_left_subtree = middle - node_segment.start + 1;
+        let left_child_index = father_index + 1;
+        let right_child_index = father_index + 2 * num_leaf_left_subtree;
+        (left_child_index, right_child_index)
+    }
 }
 pub mod min_max {
     use crate::range::Range;
+    use crate::range::left_right_child_index;
     use std::cmp::{max, min};
     use std::error::Error;
-    use std::fmt;
-    use std::fmt::{Display, Formatter};
+    use std::fmt::Display;
 
     struct MaxSegmentTree {
         tree: Vec<u32>,
-        pending_updates: Vec<u32>,
+        pending_updates: Vec<Option<u32>>,
         num_leaf: usize,
     }
 
@@ -65,7 +76,7 @@ pub mod min_max {
             Self::build_rec(&a, &mut implicit_tree, Range::new(0, a.len() - 1), 0);
             let segment_tree = Self {
                 tree: implicit_tree,
-                pending_updates: vec![u32::MAX; 2 * a.len() - 1],
+                pending_updates: vec![None; 2 * a.len() - 1],
                 num_leaf: a.len(),
             };
             segment_tree
@@ -110,42 +121,42 @@ pub mod min_max {
                 return self.tree[index];
             }
             // partial overlap
+            let (left_child_index, right_child_index) = left_right_child_index(node_segment, index);
             let middle = node_segment.middle();
             let left_value = self.query_rec(
                 query_range,
                 Range::new(node_segment.start, middle),
-                index + 1,
+                left_child_index
             );
-            let num_leaf_left_subtree = middle - node_segment.start + 1;
-            // since the left subtree has num_leaf_left_subtree leaf it will have in total 2 * num_leaf_left_subtree - 1 nodes leaf included
-            // so the index of the right child will be the next after this nodes
             let right_value = self.query_rec(
                 query_range,
                 Range::new(middle + 1, node_segment.end),
-                index + 2 * num_leaf_left_subtree,
+                right_child_index
             );
             max(left_value, right_value)
         }
 
         fn handle_pending_updates(&mut self, node_segment: Range, index: usize) {
-            if self.pending_updates[index] != u32::MAX {
-                let pending_update = self.pending_updates[index];
+            if let Some(pending_update) = self.pending_updates[index] {
                 self.update_node_and_propagate(node_segment, index, pending_update);
-                self.pending_updates[index] = u32::MAX;
+                self.pending_updates[index] = None;
             }
         }
 
         fn update_node_and_propagate(&mut self, node_segment: Range, index: usize, to_update: u32) {
             self.tree[index] = min(self.tree[index], to_update);
-            if node_segment.size() > 1 {
-                //propagate updates to his children
-                let middle = node_segment.middle();
-                let num_leaf_left_subtree = middle - node_segment.start + 1;
-                let right_child_index = index + 2 * num_leaf_left_subtree;
-                self.pending_updates[index + 1] = min(self.pending_updates[index + 1], to_update);
+            if ! node_segment.is_single_point() {
+                // propagate lazy updates to its children since the update for them is not needed now
+                let (left_child_index, right_child_index) = left_right_child_index(node_segment, index);
+                self.pending_updates[left_child_index] =
+                    Self::merge_min(self.pending_updates[left_child_index], to_update);
                 self.pending_updates[right_child_index] =
-                    min(self.pending_updates[right_child_index], to_update);
+                    Self::merge_min(self.pending_updates[right_child_index], to_update);
             }
+        }
+
+        fn merge_min(a: Option<u32>, val: u32) -> Option<u32> {
+            Some(a.unwrap_or(val).min(val))
         }
 
         fn range_update(&mut self, i: usize, j: usize, val: u32) {
@@ -164,33 +175,36 @@ pub mod min_max {
                 return;
             }
             if query_range.total_overlap(node_segment) {
-                //total overlap: node_segment is contained in query
+                // total overlap: node_segment is contained in query so we need to instantly apply
+                // the update to have the correct value since it will be used by the partial overlapped
+                // father and lazy propagate it to its children since the update is not needed for them now
                 self.update_node_and_propagate(node_segment, nav_index, val);
                 return;
             }
-            //partial overlap: query partially contained in node_segment
-            //navigate left and right
+            // partial overlap: query partially contained in node_segment
+            // so we need to navigate left and right children
+            let (left_child_index, right_child_index) = left_right_child_index(node_segment, nav_index);
             let middle = node_segment.middle();
-            let left_child_index = nav_index + 1;
             self.range_update_rec(
                 query_range,
                 Range::new(node_segment.start, middle),
                 val,
                 left_child_index,
             );
-            // since the left subtree has num_leaf_left_subtree leaf it will have in total 2 * num_leaf_left_subtree - 1 nodes leaf included
-            // so the index of the right child will be the next after this nodes
-            let right_child_index = nav_index + 2 * (middle - node_segment.start + 1);
             self.range_update_rec(
                 query_range,
                 Range::new(middle + 1, node_segment.end),
                 val,
                 right_child_index,
             );
+            // the value of the children has already been updated, so we can use them
             self.tree[nav_index] = max(self.tree[left_child_index], self.tree[right_child_index]);
         }
     }
 
+    // A wrapper around the segment tree that exposes the problem’s
+    // interface (range min update and range max) while hiding the underlying
+    // segment-tree implementation
     pub struct MinMaxArray {
         st: MaxSegmentTree,
     }
@@ -222,7 +236,7 @@ pub mod min_max {
             })
             .collect::<Result<_, _>>()?;
 
-        let mut st = MaxSegmentTree::build(arr.as_slice());
+        let mut min_max_arr = MinMaxArray::build(arr.as_slice());
         let mut output = String::new();
 
         for _ in 0..m {
@@ -232,12 +246,12 @@ pub mod min_max {
                 let l: usize = iter.next().ok_or("missing l")?.parse()?;
                 let r: usize = iter.next().ok_or("missing r")?.parse()?;
                 let t: u32 = iter.next().ok_or("missing val")?.parse()?;
-                st.range_update(l - 1, r - 1, t);
+                min_max_arr.update(l - 1, r - 1, t);
             } else if query_type == 1 {
                 // Max(i, j)
                 let l: usize = iter.next().ok_or("missing l")?.parse()?;
                 let r: usize = iter.next().ok_or("missing r")?.parse()?;
-                let ans = st.query(l - 1, r - 1);
+                let ans = min_max_arr.max(l - 1, r - 1);
                 output.push_str(&format!("{}\n", ans));
             } else {
                 output.push_str(&"unknown query type\n".to_string());
@@ -344,46 +358,46 @@ pub mod min_max {
             tree.range_update(4, 9, 2);
             //[5,9] updated
             assert_eq!(2, tree.tree[10]);
-            assert_eq!(u32::MAX, tree.pending_updates[10]);
+            assert_eq!(None, tree.pending_updates[10]);
             //[5, 7] still not updated but lazy update recorded
             assert_eq!(31, tree.tree[11]);
-            assert_eq!(2, tree.pending_updates[11]);
+            assert_eq!(2, tree.pending_updates[11].unwrap());
             //[8,9] still not updated but lazy update recorded
             assert_eq!(16, tree.tree[16]);
-            assert_eq!(2, tree.pending_updates[16]);
+            assert_eq!(2, tree.pending_updates[16].unwrap());
 
             assert_eq!(2, tree.query(5, 7));
             //[5,7] updated
             assert_eq!(2, tree.tree[11]);
-            assert_eq!(u32::MAX, tree.pending_updates[11]);
+            assert_eq!(None, tree.pending_updates[11]);
             //[5, 6] still not updated but lazy update recorded
             assert_eq!(15, tree.tree[12]);
-            assert_eq!(2, tree.pending_updates[12]);
+            assert_eq!(2, tree.pending_updates[12].unwrap());
             //[7, 7] still not updated but lazy update recorded
             assert_eq!(31, tree.tree[15]);
-            assert_eq!(2, tree.pending_updates[15]);
+            assert_eq!(2, tree.pending_updates[15].unwrap());
 
             assert_eq!(2, tree.query(5, 6));
             //[5,6] updated
             assert_eq!(2, tree.tree[12]);
-            assert_eq!(u32::MAX, tree.pending_updates[12]);
+            assert_eq!(None, tree.pending_updates[12]);
             //[6, 6] still not updated but lazy update recorded
             assert_eq!(15, tree.tree[13]);
-            assert_eq!(2, tree.pending_updates[13]);
+            assert_eq!(2, tree.pending_updates[13].unwrap());
             //[7, 7] still not updated but lazy update recorded
             assert_eq!(2, tree.tree[14]);
-            assert_eq!(2, tree.pending_updates[14]);
+            assert_eq!(2, tree.pending_updates[14].unwrap());
 
             assert_eq!(2, tree.query(8, 9));
             //[8, 9] updated
             assert_eq!(2, tree.tree[16]);
-            assert_eq!(u32::MAX, tree.pending_updates[16]);
+            assert_eq!(None, tree.pending_updates[16]);
             //[8, 8] still not updated but lazy update recorded
             assert_eq!(4, tree.tree[17]);
-            assert_eq!(2, tree.pending_updates[17]);
+            assert_eq!(2, tree.pending_updates[17].unwrap());
             //[9, 9] still not updated but lazy update recorded
             assert_eq!(16, tree.tree[18]);
-            assert_eq!(2, tree.pending_updates[18]);
+            assert_eq!(2, tree.pending_updates[18].unwrap());
 
             assert_eq!(2, tree.query(8, 8));
 
@@ -460,20 +474,20 @@ pub mod min_max {
 }
 
 pub mod is_there {
-    use std::cmp::{max, min};
+    use crate::range::Range;
+    use crate::range::left_right_child_index;
     use std::collections::HashSet;
     use std::error::Error;
-    use std::fmt;
-    use std::fmt::{Display, Formatter};
-    use crate::range::Range;
+    use std::fmt::Display;
 
     struct HashSetSegmentTree {
         tree: Vec<Option<HashSet<u32>>>,
-        num_leaf: usize
+        num_leaf: usize,
     }
 
     impl HashSetSegmentTree {
         pub fn build(a: &[u32]) -> Self {
+            // initialize all with None
             let mut implicit_tree = vec![None; 2 * a.len() - 1];
             Self::build_rec(&a, &mut implicit_tree, Range::new(0, a.len() - 1), 0);
             let segment_tree = Self {
@@ -485,7 +499,12 @@ pub mod is_there {
 
         // since we insert the n value in one hashset at each level the cost of construction is n*log(n)
         // instead of n
-        fn build_rec(a: &[u32], tree: &mut Vec<Option<HashSet<u32>>>, node_segment: Range, index: usize) {
+        fn build_rec(
+            a: &[u32],
+            tree: &mut Vec<Option<HashSet<u32>>>,
+            node_segment: Range,
+            index: usize,
+        ) {
             if node_segment.is_single_point() {
                 let mut hs = HashSet::with_capacity(1);
                 hs.insert(a[node_segment.start]);
@@ -493,8 +512,7 @@ pub mod is_there {
                 return;
             }
             let middle = node_segment.middle();
-            let left_child_index = index + 1;
-            let right_child_index = index + 2 * (middle - node_segment.start + 1);
+            let (left_child_index, right_child_index) = left_right_child_index(node_segment, index);
             Self::build_rec(
                 a,
                 tree,
@@ -510,6 +528,9 @@ pub mod is_there {
             if let (Some(left), Some(right)) = (&tree[left_child_index], &tree[right_child_index]) {
                 let max_capacity = left.len().max(right.len());
                 let mut new_set = HashSet::with_capacity(max_capacity);
+                // we insert each element in all node until the root and the number of nodes until the root are
+                // log(n) so log(n) insertion. If we consider a cost of O(1) on average for each insertion the overall cost
+                // is log(n) on average for each element -> O(n*log(n)) on average for all the element
                 new_set.extend(left.iter());
                 new_set.extend(right.iter());
                 tree[index] = Some(new_set);
@@ -534,23 +555,23 @@ pub mod is_there {
                 return false;
             }
             if query_range.total_overlap(node_segment) {
+                // we can check if the element is present within the subset
                 return self.tree[index].as_ref().unwrap().contains(&to_search);
             }
-            // partial overlap
+            // partial overlap: the answer is present in a descendant of the current node
+            // so we have to perform a recursive descent into the children
+            let (left_child_index, right_child_index) = left_right_child_index(node_segment, index);
             let middle = node_segment.middle();
             let left_value = self.value_present_rec(
                 query_range,
                 Range::new(node_segment.start, middle),
-                index + 1,
+                left_child_index,
                 to_search,
             );
-            let num_leaf_left_subtree = middle - node_segment.start + 1;
-            // since the left subtree has num_leaf_left_subtree leaf it will have in total 2 * num_leaf_left_subtree - 1 nodes leaf included
-            // so the index of the right child will be the next after this nodes
             let right_value = self.value_present_rec(
                 query_range,
                 Range::new(middle + 1, node_segment.end),
-                index + 2 * num_leaf_left_subtree,
+                right_child_index,
                 to_search,
             );
             left_value || right_value
@@ -558,27 +579,33 @@ pub mod is_there {
     }
 
     struct SegmentSet {
-        st: HashSetSegmentTree
+        st: HashSetSegmentTree,
     }
 
     impl SegmentSet {
         pub fn build(segments: &[(usize, usize)]) -> Self {
-            let mut open_close: Vec<i32> = vec![0; segments.len()];
+            // the dimension of diff (segments' extreme universe) is equal to the number of segment because
+            // for each [l, r], 0<=l<=r<=n-1 so the "universe" is n: otherwise a
+            // remapping may have been necessary
+            let mut diff: Vec<i32> = vec![0; segments.len()];
+            // count +1 for open extreme and -1 for closed
             for &s in segments {
-                open_close[s.0] += 1;
+                diff[s.0] += 1;
                 if s.1 + 1 < segments.len() {
-                    open_close[s.1 + 1] -= 1;
+                    diff[s.1 + 1] -= 1;
                 }
             }
-            let segments_in_points: Vec<u32> = open_close
+            // in segment_coverage[i] is present the number of segment that cover that position
+            let segment_coverage: Vec<u32> = diff
                 .iter()
-                .scan(0i32, |acc: &mut i32, &val| {
-                    *acc += val;
-                    Some(*acc)
+                .scan(0, |acc, &v| {
+                    *acc += v;
+                    Some(*acc as u32)
                 })
-                .map(|x| x as u32)
                 .collect();
-            let st = HashSetSegmentTree::build(segments_in_points.as_slice());
+            // create a HashSetSegmentTree over this segment in order to respond
+            // in time O(log(n)) to the query
+            let st = HashSetSegmentTree::build(segment_coverage.as_slice());
 
             Self { st }
         }
