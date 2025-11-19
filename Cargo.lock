@@ -27,7 +27,15 @@ name = "handson2"
 version = "0.1.0"
 
 [[package]]
+name = "house_robber"
+version = "0.1.0"
+
+[[package]]
 name = "integers_covered_by_range"
+version = "0.1.0"
+
+[[package]]
+name = "lcs"
 version = "0.1.0"
 
 [[package]]
