@@ -19,6 +19,10 @@ name = "first_challenge"
 version = "0.1.0"
 
 [[package]]
+name = "graph"
+version = "0.1.0"
+
+[[package]]
 name = "handson1"
 version = "0.1.0"
 
@@ -29,6 +33,9 @@ version = "0.1.0"
 [[package]]
 name = "house_robber"
 version = "0.1.0"
+dependencies = [
+ "graph",
+]
 
 [[package]]
 name = "integers_covered_by_range"
