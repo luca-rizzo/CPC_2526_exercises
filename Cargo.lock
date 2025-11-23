@@ -19,6 +19,10 @@ name = "first_challenge"
 version = "0.1.0"
 
 [[package]]
+name = "graph"
+version = "0.1.0"
+
+[[package]]
 name = "handson1"
 version = "0.1.0"
 
@@ -27,7 +31,18 @@ name = "handson2"
 version = "0.1.0"
 
 [[package]]
+name = "house_robber"
+version = "0.1.0"
+dependencies = [
+ "graph",
+]
+
+[[package]]
 name = "integers_covered_by_range"
+version = "0.1.0"
+
+[[package]]
+name = "lcs"
 version = "0.1.0"
 
 [[package]]
@@ -49,6 +64,13 @@ version = "0.1.0"
 [[package]]
 name = "maximum_sliding_windows"
 version = "0.1.0"
+
+[[package]]
+name = "minimum_path_sum"
+version = "0.1.0"
+dependencies = [
+ "graph",
+]
 
 [[package]]
 name = "nested_segments"
