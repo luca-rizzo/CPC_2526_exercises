@@ -1,8 +1,8 @@
 [workspace]
 members = ["challenges/first_challenge", "data_structures/graph", 
     "data_structures/segment_tree",
-    "hands-on\\*",
-    "problems\\leet*",
-    "problems\\lessons\\*"
+    "hands-on/*",
+    "problems/leet*",
+    "problems/lessons/*"
 ]
 resolver = "2"

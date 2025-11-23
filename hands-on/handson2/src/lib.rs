@@ -419,8 +419,8 @@ pub mod min_max {
         use crate::min_max::solve;
 
         fn run_case(i: usize) -> Result<(), Box<dyn std::error::Error>> {
-            let input = std::fs::read_to_string(format!("./min_max_test_set/input{i}.txt"))?;
-            let expected = std::fs::read_to_string(format!("./min_max_test_set/output{i}.txt"))?;
+            let input = std::fs::read_to_string(format!("./test_sets/min_max/input{i}.txt"))?;
+            let expected = std::fs::read_to_string(format!("./test_sets/min_max/output{i}.txt"))?;
             let actual = solve(&input)?;
             assert_eq!(actual, expected, "Mismatch on case {i}");
             Ok(())
@@ -662,8 +662,8 @@ pub mod is_there {
         use crate::is_there::solve;
 
         fn run_case(i: usize) -> Result<(), Box<dyn std::error::Error>> {
-            let input = std::fs::read_to_string(format!("./is_there_test_set/input{i}.txt"))?;
-            let expected = std::fs::read_to_string(format!("./is_there_test_set/output{i}.txt"))?;
+            let input = std::fs::read_to_string(format!("./test_sets/is_there/input{i}.txt"))?;
+            let expected = std::fs::read_to_string(format!("./test_sets/is_there/output{i}.txt"))?;
             let actual = solve(&input)?;
             assert_eq!(actual, expected, "Mismatch on case {i}");
             Ok(())
