@@ -57,6 +57,8 @@ mod range {
         (left_child_index, right_child_index)
     }
 }
+
+/* ---------  Problem #1: Min and Max  ---------------- */
 pub mod min_max {
     use crate::range::Range;
     use crate::range::left_right_child_index;
@@ -73,13 +75,14 @@ pub mod min_max {
     impl MaxSegmentTree {
         pub fn build(a: &[u32]) -> Self {
             let mut implicit_tree: Vec<u32> = vec![u32::MAX; 2 * a.len() - 1];
-            Self::build_rec(&a, &mut implicit_tree, Range::new(0, a.len() - 1), 0);
-            let segment_tree = Self {
+            //create a max segment tree
+            Self::build_rec(a, &mut implicit_tree, Range::new(0, a.len() - 1), 0);
+            Self {
                 tree: implicit_tree,
+                //initially there are no pending updates
                 pending_updates: vec![None; 2 * a.len() - 1],
                 num_leaf: a.len(),
-            };
-            segment_tree
+            }
         }
 
         fn build_rec(a: &[u32], tree: &mut Vec<u32>, node_segment: Range, index: usize) {
@@ -102,6 +105,7 @@ pub mod min_max {
                 Range::new(middle + 1, node_segment.end),
                 right_child_index,
             );
+            // the maximum value of the current segment is the maximum between its two child segments
             tree[index] = max(tree[left_child_index], tree[right_child_index]);
         }
 
@@ -113,6 +117,11 @@ pub mod min_max {
         }
 
         fn query_rec(&mut self, query_range: Range, node_segment: Range, index: usize) -> u32 {
+            // Since we are visiting this node, we must apply any pending lazy updates.
+            // This is essential if the next step is a total-overlap case, because we must
+            // return the correct fully-updated value to the parent. In partial-overlap cases,
+            // applying updates now allows correct propagation to the children during recursion.
+            // It is not required for no-overlap, but since we are already here, applying it is harmless.
             self.handle_pending_updates(node_segment, index);
             if query_range.no_overlap(node_segment) {
                 return u32::MIN;
@@ -126,12 +135,12 @@ pub mod min_max {
             let left_value = self.query_rec(
                 query_range,
                 Range::new(node_segment.start, middle),
-                left_child_index
+                left_child_index,
             );
             let right_value = self.query_rec(
                 query_range,
                 Range::new(middle + 1, node_segment.end),
-                right_child_index
+                right_child_index,
             );
             max(left_value, right_value)
         }
@@ -145,9 +154,11 @@ pub mod min_max {
 
         fn update_node_and_propagate(&mut self, node_segment: Range, index: usize, to_update: u32) {
             self.tree[index] = min(self.tree[index], to_update);
-            if ! node_segment.is_single_point() {
-                // propagate lazy updates to its children since the update for them is not needed now
-                let (left_child_index, right_child_index) = left_right_child_index(node_segment, index);
+            //check if the node is not a leaf in the segment tree and propagate lazy updates
+            // to its children since the update for them is not needed now
+            if !node_segment.is_single_point() {
+                let (left_child_index, right_child_index) =
+                    left_right_child_index(node_segment, index);
                 self.pending_updates[left_child_index] =
                     Self::merge_min(self.pending_updates[left_child_index], to_update);
                 self.pending_updates[right_child_index] =
@@ -181,9 +192,10 @@ pub mod min_max {
                 self.update_node_and_propagate(node_segment, nav_index, val);
                 return;
             }
-            // partial overlap: query partially contained in node_segment
+            // partial overlap: range partially contained in node_segment
             // so we need to navigate left and right children
-            let (left_child_index, right_child_index) = left_right_child_index(node_segment, nav_index);
+            let (left_child_index, right_child_index) =
+                left_right_child_index(node_segment, nav_index);
             let middle = node_segment.middle();
             self.range_update_rec(
                 query_range,
@@ -225,7 +237,7 @@ pub mod min_max {
         }
     }
 
-    pub fn solve(input: &String) -> Result<String, Box<dyn Error>> {
+    pub fn solve(input: &str) -> Result<String, Box<dyn Error>> {
         let mut iter = input.split_whitespace();
         let n: usize = iter.next().ok_or("missing n")?.parse()?;
         let m: usize = iter.next().ok_or("missing m")?.parse()?;
@@ -254,7 +266,7 @@ pub mod min_max {
                 let ans = min_max_arr.max(l - 1, r - 1);
                 output.push_str(&format!("{}\n", ans));
             } else {
-                output.push_str(&"unknown query type\n".to_string());
+                output.push_str("unknown query type\n");
             }
         }
 
@@ -473,6 +485,7 @@ pub mod min_max {
     }
 }
 
+/* ---------  Problem #2: Is There  ---------------- */
 pub mod is_there {
     use crate::range::Range;
     use crate::range::left_right_child_index;
@@ -489,16 +502,15 @@ pub mod is_there {
         pub fn build(a: &[u32]) -> Self {
             // initialize all with None
             let mut implicit_tree = vec![None; 2 * a.len() - 1];
-            Self::build_rec(&a, &mut implicit_tree, Range::new(0, a.len() - 1), 0);
-            let segment_tree = Self {
+            Self::build_rec(a, &mut implicit_tree, Range::new(0, a.len() - 1), 0);
+            Self {
                 tree: implicit_tree,
                 num_leaf: a.len(),
-            };
-            segment_tree
+            }
         }
 
-        // since we insert the n value in one hashset at each level the cost of construction is n*log(n)
-        // instead of n
+        // since we insert each elem of 'a' in one hashset at each level the cost of construction
+        // is n*log(n) in this case instead of n
         fn build_rec(
             a: &[u32],
             tree: &mut Vec<Option<HashSet<u32>>>,
@@ -555,19 +567,22 @@ pub mod is_there {
                 return false;
             }
             if query_range.total_overlap(node_segment) {
-                // we can check if the element is present within the subset
+                // we can check if the element is present within the subset with a cost
+                // of O(1) on average
                 return self.tree[index].as_ref().unwrap().contains(&to_search);
             }
             // partial overlap: the answer is present in a descendant of the current node
             // so we have to perform a recursive descent into the children
             let (left_child_index, right_child_index) = left_right_child_index(node_segment, index);
             let middle = node_segment.middle();
+            // check if the value is present in left subtree
             let left_value = self.value_present_rec(
                 query_range,
                 Range::new(node_segment.start, middle),
                 left_child_index,
                 to_search,
             );
+            // check if the value is present in right subtree
             let right_value = self.value_present_rec(
                 query_range,
                 Range::new(middle + 1, node_segment.end),
@@ -578,24 +593,18 @@ pub mod is_there {
         }
     }
 
-    struct SegmentSet {
+    // A wrapper around the segment tree that exposes the problem’s
+    // interface (is there query) while hiding the underlying
+    // segment-tree implementation
+    pub struct SegmentSet {
         st: HashSetSegmentTree,
     }
 
     impl SegmentSet {
         pub fn build(segments: &[(usize, usize)]) -> Self {
-            // the dimension of diff (segments' extreme universe) is equal to the number of segment because
-            // for each [l, r], 0<=l<=r<=n-1 so the "universe" is n: otherwise a
-            // remapping may have been necessary
-            let mut diff: Vec<i32> = vec![0; segments.len()];
-            // count +1 for open extreme and -1 for closed
-            for &s in segments {
-                diff[s.0] += 1;
-                if s.1 + 1 < segments.len() {
-                    diff[s.1 + 1] -= 1;
-                }
-            }
-            // in segment_coverage[i] is present the number of segment that cover that position
+            let diff = Self::create_diff(segments);
+            // in segment_coverage[i] is present the number of segment that cover position 'i' and is the
+            // prefix sum array of 'diff'
             let segment_coverage: Vec<u32> = diff
                 .iter()
                 .scan(0, |acc, &v| {
@@ -604,10 +613,28 @@ pub mod is_there {
                 })
                 .collect();
             // create a HashSetSegmentTree over this segment in order to respond
-            // in time O(log(n)) to the query
+            // in time O(log(n)) to successive query
             let st = HashSetSegmentTree::build(segment_coverage.as_slice());
 
             Self { st }
+        }
+
+        fn create_diff(segments: &[(usize, usize)]) -> Vec<i32> {
+            // the dimension of diff (segments' extreme universe) is equal to the number of segment because
+            // for each [l, r], 0<=l<=r<=n-1 so the "universe" is n: otherwise a
+            // remapping may have been necessary.
+            // I allocate `len + 1` so that writing at position `r + 1` is always valid.
+            // This removes the need for any bounds check on the right endpoint that may be n-1
+            // and cause off of bound access
+            let mut diff: Vec<i32> = vec![0; segments.len() + 1];
+            // count +1 for open extreme and -1 for closed
+            for &s in segments {
+                diff[s.0] += 1;
+                diff[s.1 + 1] -= 1;
+            }
+            // The last cell can be removed
+            diff.pop();
+            diff
         }
 
         pub fn is_there(&self, i: usize, j: usize, k: u32) -> bool {
@@ -615,7 +642,7 @@ pub mod is_there {
         }
     }
 
-    pub fn solve(input: &String) -> Result<String, Box<dyn Error>> {
+    pub fn solve(input: &str) -> Result<String, Box<dyn Error>> {
         let mut iter = input.split_whitespace();
         let n: usize = iter.next().ok_or("missing n")?.parse()?;
         let m: usize = iter.next().ok_or("missing m")?.parse()?;

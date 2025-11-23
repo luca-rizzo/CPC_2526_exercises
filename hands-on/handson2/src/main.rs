@@ -1,10 +1,11 @@
 use handson2::{is_there, min_max};
+use std::error::Error;
 use std::fs;
 
 fn run_single_test(
     input_path: &str,
     output_path: &str,
-    solver: fn(&String) -> Result<String, Box<dyn std::error::Error>>,
+    solver: fn(&str) -> Result<String, Box<dyn Error>>,
 ) -> Result<(), String> {
     let input = fs::read_to_string(input_path)
         .map_err(|_| format!("Impossible to read input: {}", input_path))?;
@@ -25,11 +26,11 @@ fn run_single_test(
 fn main() {
     run_min_max_tests();
     run_is_there_tests();
-    println!("\nAll tests passed!");
+    println!("\n\nAll tests passed!");
 }
 
 fn run_is_there_tests() {
-    println!("--- Executing is_there tests ---");
+    println!("\n--- Executing is_there tests ---");
 
     for i in 1..=7 {
         let input = format!("./test_sets/is_there/input{}.txt", i);
@@ -45,7 +46,7 @@ fn run_is_there_tests() {
 }
 
 fn run_min_max_tests() {
-    println!("--- Executing min_max tests ---");
+    println!("\n--- Executing min_max tests ---");
 
     for i in 0..=10 {
         let input = format!("./test_sets/min_max/input{}.txt", i);
