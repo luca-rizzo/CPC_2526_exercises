@@ -1,0 +1,7 @@
+[package]
+name = "house_robber"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+graph = { path = "../../../data_structures/graph" }
