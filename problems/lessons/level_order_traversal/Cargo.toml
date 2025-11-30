@@ -1,5 +1,5 @@
 [package]
-name = "leet_is_bst"
+name = "level_order_traversal"
 version = "0.1.0"
 edition = "2024"
 

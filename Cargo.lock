@@ -42,23 +42,23 @@ name = "integers_covered_by_range"
 version = "0.1.0"
 
 [[package]]
+name = "is_bst"
+version = "0.1.0"
+
+[[package]]
 name = "lcs"
 version = "0.1.0"
 
 [[package]]
-name = "leet_is_bst"
-version = "0.1.0"
-
-[[package]]
-name = "leet_level_order_traversal"
-version = "0.1.0"
-
-[[package]]
-name = "leet_max_path_tree"
+name = "level_order_traversal"
 version = "0.1.0"
 
 [[package]]
 name = "longest_increasing_subsequence"
+version = "0.1.0"
+
+[[package]]
+name = "max_path_tree"
 version = "0.1.0"
 
 [[package]]

@@ -29,12 +29,12 @@ for the Competitive Programming and Contests course at the University of Pisa, a
 | Name                                             | Link                                                                            | Done  |
 |--------------------------------------------------|---------------------------------------------------------------------------------|-------|
 | Longest common subsequence                       | https://practice.geeksforgeeks.org/problems/longest-common-subsequence/0        | [ x ] |
-| Minimum number of jumps                          | https://practice.geeksforgeeks.org/problems/minimum-number-of-jumps/0           | [ x ] |
+| Minimum number of jumps                          | https://practice.geeksforgeeks.org/problems/minimum-number-of-jumps/0           | [   ] |
 | Subset sum                                       | https://practice.geeksforgeeks.org/problems/subset-sum-problem/0                | [ x ] |
 | Longest increasing subsequence                   | https://practice.geeksforgeeks.org/problems/longest-increasing-subsequence/0    | [ x ] |
 
 ### Miscellaneous exercises
 | Name                                             | Link                                                                            | Done  |
 |--------------------------------------------------|---------------------------------------------------------------------------------|-------|
-| Kadane’s algorithm                               | https://leetcode.com/problems/maximum-subarray/                                 | [ x ] |
+| Kadane’s algorithm                               | https://leetcode.com/problems/maximum-subarray/                                 | [   ] |
 | Trapping rain water                              | https://leetcode.com/problems/trapping-rain-water/                              | [ x ] |
