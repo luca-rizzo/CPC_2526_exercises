@@ -58,6 +58,10 @@ name = "leet_max_path_tree"
 version = "0.1.0"
 
 [[package]]
+name = "longest_increasing_subsequence"
+version = "0.1.0"
+
+[[package]]
 name = "maximize_distance_to_closest_person"
 version = "0.1.0"
 
@@ -78,6 +82,10 @@ version = "0.1.0"
 dependencies = [
  "segment_tree",
 ]
+
+[[package]]
+name = "partition_equal_subset_sum"
+version = "0.1.0"
 
 [[package]]
 name = "segment_tree"
