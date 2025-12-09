@@ -7,6 +7,6 @@ members = ["challenges/first_challenge", "data_structures/graph",
     "problems/mandatory/dynamic_programming/*",
     "problems/mandatory/miscellaneous/*",
     "problems/mandatory/ranges/*",
-    "problems/mandatory/sweep_line/*",
+    "problems/mandatory/sweep_line/*", "problems/mandatory/greedy/*",
 ]
 resolver = "2"

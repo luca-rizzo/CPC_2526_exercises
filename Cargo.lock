@@ -31,6 +31,10 @@ name = "handson2"
 version = "0.1.0"
 
 [[package]]
+name = "handson3"
+version = "0.1.0"
+
+[[package]]
 name = "house_robber"
 version = "0.1.0"
 dependencies = [
@@ -93,4 +97,8 @@ version = "0.1.0"
 
 [[package]]
 name = "trapping_rain_water"
+version = "0.1.0"
+
+[[package]]
+name = "wilbur_and_array"
 version = "0.1.0"
