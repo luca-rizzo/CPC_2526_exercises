@@ -40,6 +40,14 @@ for the Competitive Programming and Contests course at the University of Pisa, a
 
 ---
 
+### Greedy algorithms exercises
+| Name                   | Problem description                                                 | Repo link                                                                                                            | Done  |
+|------------------------|---------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|-------|
+| N meetings in one room | http://practice.geeksforgeeks.org/problems/n-meetings-in-one-room/0 |                                                                                                                      | [   ] |
+| Wilbur and array       | https://codeforces.com/problemset/problem/596/B                     | [repo link](https://github.com/luca-rizzo/CPC_2526_exercises/tree/master/problems/mandatory/greedy/wilbur_and_array) | [ x ] |
+| Woodcutters            | https://codeforces.com/contest/545/problem/C?locale=en              |                                                                                                                      | [   ] |
+---
+
 ### Miscellaneous exercises
 | Name                | Problem description                                | Repo link                                                                                                                      | Done  |
 |---------------------|----------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|-------|
