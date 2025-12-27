@@ -51,5 +51,5 @@ for the Competitive Programming and Contests course at the University of Pisa, a
 ### Miscellaneous exercises
 | Name                | Problem description                                | Repo link                                                                                                                      | Done  |
 |---------------------|----------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|-------|
-| Kadane’s algorithm  | https://leetcode.com/problems/maximum-subarray/    | [repo link](https://github.com/luca-rizzo/CPC_2526_exercises/tree/master/problems/mandatory/miscellaneous/max_sub_array)       | [ x ] |
+| Kadane’s algorithm  | https://leetcode.com/problems/maximum-subarray/    | [repo link](https://github.com/luca-rizzo/CPC_2526_exercises/tree/master/problems/mandatory/miscellaneous/maximum_subarray_sum)       | [ x ] |
 | Trapping rain water | https://leetcode.com/problems/trapping-rain-water/ | [repo link](https://github.com/luca-rizzo/CPC_2526_exercises/tree/master/problems/mandatory/miscellaneous/trapping_rain_water) | [ x ] |

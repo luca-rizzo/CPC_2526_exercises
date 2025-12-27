@@ -2,25 +2,29 @@ use std::cmp::{max, min};
 
 struct Solution;
 impl Solution {
-    pub fn trap(height: Vec<i32>) -> i32 {
+    pub fn trap(heights: Vec<i32>) -> i32 {
+        if heights.len() < 3 {
+            return 0;
+        }
         let max_with_acc = |acc: &mut i32, &val| {
             *acc = max(val, *acc);
             Some(*acc)
         };
-        let left_max_prefix: Vec<i32> = height.iter().scan(0, max_with_acc).collect();
-        let mut right_max_prefix: Vec<i32> = height.iter().rev().scan(0, max_with_acc).collect();
+        let left_max_prefix: Vec<i32> = heights.iter().scan(0, max_with_acc).collect();
+        let mut right_max_prefix: Vec<i32> = heights.iter().rev().scan(0, max_with_acc).collect();
+        // in this way in right_max_prefix[i] we have the right_max_prefix[i] = max(heights[i ..])
         right_max_prefix.reverse();
-
-        height.iter().enumerate().fold(0, |acc, (i, &val)| {
-            let left = if i > 0 { left_max_prefix[i - 1] } else { 0 };
-            let right = if i < height.len() - 1 {
-                right_max_prefix[i + 1]
-            } else {
-                0
-            };
-            let water_above = max(0, min(left, right) - val);
-            acc + water_above
-        })
+        // i can skip first and last iteration since we cannot put water above
+        heights
+            .iter()
+            .enumerate()
+            .skip(1)
+            .take(heights.len() - 2)
+            .fold(0, |acc, (i, &val)| {
+                let left = left_max_prefix[i - 1];
+                let right = right_max_prefix[i + 1];
+                acc + (min(left, right) - val).max(0)
+            })
     }
 
     pub fn trap_no_extra_space(height: Vec<i32>) -> i32 {
@@ -35,14 +39,18 @@ impl Solution {
         while r!= 0  && r >= l {
             if right_max > left_max {
                 // this is the case in which we can compute the water above height[l] because for sure
-                // this quantity is limited by left_max and allowed by right_max
+                // this quantity is
+                //      LIMITED by left_max
+                //      ALLOWED by right_max
                 //  left_max = 2  l        right_max = 3
                 acc += max(0, left_max - height[l]);
                 left_max = max(left_max, height[l]);
                 l += 1;
             } else {
                 // this is the case in which we can compute the water above height[r] because for sure
-                // this quantity is limited by right_max and allowed by left_max
+                // this quantity is
+                //      LIMITED by right_max and
+                //      ALLOWED by left_max
                 //  left_max = 3           r   right_max = 2
                 acc += max(0, right_max - height[r]);
                 right_max = max(right_max, height[r]);
