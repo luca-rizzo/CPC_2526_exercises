@@ -42,11 +42,12 @@ mod first_exercise {
 mod second_exercise {
 
     fn missing_number(perm: &[i32]) -> i32 {
+        let n = perm.len() as i32;
         perm.iter()
             .enumerate()
-            //we start from perm.len() cause we always have a number less so the last index is not summed up
+            //we start from n cause we always have a number less so the last index is not summed up
             //in fold to obtain the sum of all number in the permutation
-            .fold(perm.len() as i32, |acc, (i, &x)| acc + (i as i32) - x)
+            .fold(n + 1, |acc, (i, &x)| acc + (i as i32 + 1) - x)
     }
 
     #[cfg(test)]

@@ -1,3 +1,5 @@
+use std::cmp::max;
+
 struct BsSolution;
 
 impl BsSolution {
@@ -52,6 +54,22 @@ impl BsSolution {
         *last_person_index + d <= n_seats - 1
             || *first_person_index >= d
             || opt_distance_b_person.iter().any(|&opt_d| opt_d >= d)
+    }
+
+    fn is_distance_possible(segments: &[(usize, usize)], distance: usize, point_to_place: u32) -> bool {
+        let mut last_positioned = segments[0].0;
+        let mut cnt = 0;
+        for &(start, end) in segments {
+            //while serve perché in uno stesso intervallo puoi piazzare più punti
+            while max(start, last_positioned + distance) > end {
+                last_positioned = max(start, last_positioned + distance);
+                cnt+=1;
+            }
+            if cnt >= point_to_place {
+                return true;
+            }
+        }
+        false
     }
 }
 
